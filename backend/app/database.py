@@ -1,3 +1,12 @@
+from datetime import datetime, timedelta
+import secrets
+
+# Configuración para JWT. Cadena secreta y segura en producción
+SECRET_KEY = "ciclopuerto_2v_secret_key_2025B" 
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30  # El token expira en 30 minutos
+
+
 fake_users_db = {
     "2213522292": {
         "id": 1,

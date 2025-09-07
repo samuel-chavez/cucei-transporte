@@ -16,3 +16,11 @@ class UserOut(BaseModel):
     # Esta configuración permite crear un UserOut desde un diccionario de Python como la falsa DB
     class Config:
         from_attributes = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+# Modelo para los datos que irán dentro del token
+class TokenData(BaseModel):
+    email: Optional[str] = None
