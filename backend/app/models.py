@@ -21,6 +21,19 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
-# Modelo para los datos que irán dentro del token
+#Modelo para los datos que irán dentro del token
 class TokenData(BaseModel):
     email: Optional[str] = None
+
+class BicicletaCreate(BaseModel):
+    marca: str
+    modelo: str
+    color: str
+    serial: str  #Numero de serie es unico para cada bici
+
+class BicicletaOut(BicicletaCreate):
+    id: int
+    propietario_id: int  #ID del usuario que la registro
+
+    class Config:
+        from_attributes = True

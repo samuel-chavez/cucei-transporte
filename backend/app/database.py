@@ -24,4 +24,6 @@ fake_users_db = {
     }
 }
 
+fake_bicicletas_db = {}
+
 #encriptado en bcrypt, base de datos falsa/temporal para ver si jala
