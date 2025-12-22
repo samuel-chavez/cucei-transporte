@@ -7,22 +7,43 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30  # El token expira en 30 minutos
 
 
-fake_users_db = {
-    "2213522292": {
-        "id": 1,
-        "codigo": "2213522292",
-        "nombre": "David Melgoza",
-        "email": "david.melgoza@alumnos.udg.mx",
-        "password": "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW"  #"secret"
+# Fake database para bicicletas
+fake_registros_db = {
+    "reg_1": {
+        "id": "reg_1",
+        "bicicleta_id": "bici_1",
+        "usuario_id": 1,
+        "usuario_nombre": "David Melgoza",
+        "bicicleta_marca": "Trek",
+        "bicicleta_modelo": "Marlin 5",
+        "fecha_entrada": datetime(2025, 8, 15, 8, 30, 0),
+        "fecha_salida": datetime(2025, 8, 15, 14, 45, 0),
+        "activo": False  # Ya salió
     },
-    "218555352": {
-        "id": 2,
-        "codigo": "218555352",
-        "nombre": "Samuel Chavez",
-        "email": "samuel.chavez@alumnos.udg.mx",
-        "password": "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW"  #"secret"
+    "reg_2": {
+        "id": "reg_2",
+        "bicicleta_id": "bici_1",
+        "usuario_id": 1,
+        "usuario_nombre": "David Melgoza",
+        "bicicleta_marca": "Trek",
+        "bicicleta_modelo": "Marlin 5",
+        "fecha_entrada": datetime(2025, 8, 16, 9, 15, 0),
+        "fecha_salida": None,  # ¡Todavía dentro!
+        "activo": True
+    },
+    "reg_3": {
+        "id": "reg_3",
+        "bicicleta_id": "bici_3",
+        "usuario_id": 2,
+        "usuario_nombre": "Samuel Chavez",
+        "bicicleta_marca": "Giant",
+        "bicicleta_modelo": "Talon",
+        "fecha_entrada": datetime(2025, 8, 16, 10, 0, 0),
+        "fecha_salida": None,
+        "activo": True
     }
 }
+
 
 fake_bicicletas_db = {}
 
