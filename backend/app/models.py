@@ -1,59 +1,71 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict
+import re
 from typing import Optional
 from datetime import datetime
 
-#Este modelo define lo que el usuario DEBE enviarnos para hacer login.
-class UserLogin(BaseModel):
-    email: EmailStr  #Forcea que sea un email válido
+# Configuración para todos los modelos
+class CiclopuertoBaseModel(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+# -------------------- USUARIOS --------------------
+class UserLogin(CiclopuertoBaseModel):
+    email: str = Field(..., description="Email institucional (@alumnos.udg.mx)")
     password: str
 
-#Este modelo define lo que nosotros le DEVOLVEMOS al usuario. SIN PASSWORD NMMS
-class UserOut(BaseModel):
+    @field_validator('email')
+    @classmethod
+    def validate_udg_email(cls, v: str) -> str:
+        pattern = r'^[a-zA-Z0-9._%+-]+@alumnos\.udg\.mx$'
+        if not re.match(pattern, v):
+            raise ValueError('El email debe ser del dominio @alumnos.udg.mx')
+        return v
+
+class UserOut(CiclopuertoBaseModel):
     id: Optional[int] = None
     codigo: str
     nombre: str
     email: EmailStr
 
-    # Esta configuración permite crear un UserOut desde un diccionario de Python como la falsa DB
-    class Config:
-        from_attributes = True
+# -------------------- BICICLETAS --------------------
+class BicicletaCreate(CiclopuertoBaseModel):
+    marca: str = Field(..., min_length=2, max_length=50)
+    modelo: str = Field(..., min_length=2, max_length=50)
+    color: str = Field(..., min_length=3, max_length=30)
+    serial: str = Field(..., min_length=5, max_length=50)
 
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-#Modelo para los datos que irán dentro del token
-class TokenData(BaseModel):
-    email: Optional[str] = None
-
-class BicicletaCreate(BaseModel):
-    marca: str
-    modelo: str
-    color: str
-    serial: str  #Numero de serie es unico para cada bici
+    @field_validator('serial')
+    @classmethod
+    def validate_serial_format(cls, v: str) -> str:
+        # Formato: mínimo 5 caracteres, solo alfanuméricos y guiones
+        if not re.match(r'^[A-Za-z0-9-]{5,}$', v):
+            raise ValueError('El serial debe tener al menos 5 caracteres alfanuméricos (puede incluir guiones)')
+        return v
 
 class BicicletaOut(BicicletaCreate):
-    id: int
-    propietario_id: int  #ID del usuario que la registro
+    id: str
+    propietario_id: int
 
-    class Config:
-        from_attributes = True
-
-class RegistroBase(BaseModel):
+# -------------------- REGISTROS --------------------
+class RegistroBase(CiclopuertoBaseModel):
     bicicleta_id: str
 
 class RegistroCreate(RegistroBase):
-    pass  # Solo necesita la bicicleta_id, el usuario se obtiene del token
+    pass
 
 class RegistroOut(RegistroBase):
     id: str
     usuario_id: int
-    usuario_nombre: str  # Para que sea fácil ver quién registró
+    usuario_nombre: str
     bicicleta_marca: str
     bicicleta_modelo: str
     fecha_entrada: datetime
     fecha_salida: Optional[datetime] = None
-    activo: bool  # True = dentro del ciclopuerto, False = ya salió
+    activo: bool
 
-    class Config:
-        from_attributes = True
+# -------------------- TOKENS --------------------
+class Token(CiclopuertoBaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(CiclopuertoBaseModel):
+    email: Optional[str] = None

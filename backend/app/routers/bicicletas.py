@@ -1,16 +1,19 @@
+from app.logger import log_bicicleta_event
 from fastapi import APIRouter, Depends, HTTPException
 from app.models import BicicletaCreate, BicicletaOut, UserOut
 from app.dependencies import get_current_user
 from app.database import fake_bicicletas_db
 from uuid import uuid4
+from fastapi import APIRouter, Depends, HTTPException, Request  # <-- Añadir Request
 
 router = APIRouter(prefix="/bicicletas", tags=["bicicletas"])
 
-# CREATE - Ya lo tenías
+# CREATE
 @router.post("/", response_model=BicicletaOut)
 async def registrar_bicicleta(
     bicicleta: BicicletaCreate,
-    current_user: UserOut = Depends(get_current_user)
+    current_user: UserOut = Depends(get_current_user),
+    request: Request = None
 ):
     # Verificar si el serial ya existe
     for bici_id, bici_data in fake_bicicletas_db.items():
@@ -35,7 +38,9 @@ async def registrar_bicicleta(
     
     # Guardar en la "base de datos"
     fake_bicicletas_db[new_id] = nueva_bicicleta
-    
+    if request:
+        client_ip = request.client.host if request.client else "unknown"
+        log_bicicleta_event("registro", new_id, current_user.id, client_ip)
     return nueva_bicicleta
 
 # READ (Listar todas las bicicletas del usuario)
@@ -82,7 +87,8 @@ async def obtener_bicicleta(
 async def actualizar_bicicleta(
     bici_id: str,
     bici_actualizada: BicicletaCreate,
-    current_user: UserOut = Depends(get_current_user)
+    current_user: UserOut = Depends(get_current_user),
+    request: Request = None
 ):
     """
     Actualiza los datos de una bicicleta existente.
@@ -115,13 +121,19 @@ async def actualizar_bicicleta(
     bici["color"] = bici_actualizada.color
     bici["serial"] = bici_actualizada.serial
     
+    if request:
+        client_ip = request.client.host if request.client else "unknown"
+        log_bicicleta_event("actualizacion", bici_id, current_user.id, client_ip)
+
+
     return bici
 
 # DELETE (Eliminar una bicicleta)
 @router.delete("/{bici_id}")
 async def eliminar_bicicleta(
     bici_id: str,
-    current_user: UserOut = Depends(get_current_user)
+    current_user: UserOut = Depends(get_current_user),
+    request: Request = None
 ):
     """
     Elimina una bicicleta del sistema (dar de baja).
@@ -142,4 +154,8 @@ async def eliminar_bicicleta(
     # Eliminar la bicicleta
     del fake_bicicletas_db[bici_id]
     
+    if request:
+        client_ip = request.client.host if request.client else "unknown"
+        log_bicicleta_event("eliminacion", bici_id, current_user.id, client_ip)
+
     return {"message": "Bicicleta eliminada correctamente"}
