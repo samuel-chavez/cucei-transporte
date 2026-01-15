@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from app.routers import auth, users, bicicletas, registros
+from app.routers import auth, users, bicicletas, registros, admin
 import time
 
 # Configurar el rate limiter (5 intentos por minuto por IP)
@@ -24,6 +24,7 @@ app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(bicicletas.router)
 app.include_router(registros.router)
+app.include_router(admin.router) 
 
 @app.get("/")
 @limiter.limit("10/minute")  # También limitamos la raiz

@@ -20,11 +20,16 @@ class UserLogin(CiclopuertoBaseModel):
             raise ValueError('El email debe ser del dominio @alumnos.udg.mx')
         return v
 
-class UserOut(CiclopuertoBaseModel):
+class UserOut(BaseModel):
     id: Optional[int] = None
     codigo: str
     nombre: str
     email: EmailStr
+    rol: str  
+
+    class Config:
+        from_attributes = True
+
 
 # -------------------- BICICLETAS --------------------
 class BicicletaCreate(CiclopuertoBaseModel):
