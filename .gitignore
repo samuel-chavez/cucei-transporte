@@ -28,3 +28,46 @@ __pycache__/
 *.pyc
 .env
 *.log
+
+# Entorno virtual de Python
+venv/
+.env
+*.pyc
+__pycache__/
+
+# Archivos de Python
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Entornos virtuales
+.env/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Logs
+*.log
+logs/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# MongoDB
+data/
+mongodb_data/
