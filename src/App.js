@@ -1,3 +1,4 @@
+//App.js
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Registro from "./pages/Registro";
