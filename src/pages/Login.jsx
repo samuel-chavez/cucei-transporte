@@ -26,7 +26,7 @@ function Login() {
   return (
     <div style={{textAlign:"center", marginTop:"100px"}}>
 
-      <h1>CUCEI Transporte</h1>
+      <h1>BICI-ACCESS</h1>
 
       <form onSubmit={iniciarSesion}>
 
