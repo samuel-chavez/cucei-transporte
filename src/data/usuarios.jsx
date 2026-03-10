@@ -1,4 +1,4 @@
-export const usuarios = [
+const usuariosIniciales = [
   {
     codigo: "123456789",
     password: "1234",
@@ -14,3 +14,12 @@ export const usuarios = [
     vehiculo: "patin electrico"
   }
 ];
+
+// Si existe localStorage, cargarlo; si no, usar los iniciales
+export let usuarios = JSON.parse(localStorage.getItem("usuarios")) || usuariosIniciales;
+
+// Función para agregar usuario nuevo
+export const agregarUsuario = (usuario) => {
+  usuarios.push(usuario);
+  localStorage.setItem("usuarios", JSON.stringify(usuarios));
+};

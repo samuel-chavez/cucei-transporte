@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { usuarios } from "../data/usuarios";
+import { usuarios } from "../data/Usuarios";
 import "../styless/Login.css";
+
 function Login() {
 
   const [codigo, setCodigo] = useState("");
@@ -48,7 +49,10 @@ function Login() {
           <button type="submit">
             Iniciar sesión
           </button>
-
+          <br/><br/>
+          <button2 type="button" onClick={()=>navigate("/registro")}>
+            Crear cuenta
+          </button2>
         </form>
 
       </div>
