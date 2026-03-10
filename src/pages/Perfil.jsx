@@ -23,7 +23,7 @@ function Perfil() {
           <p className="perfil-info"><b>Código:</b> {usuario.codigo}</p>
           <p className="perfil-info"><b>Carrera:</b> {usuario.carrera}</p>
           <p className="perfil-info"><b>Vehículo:</b> {usuario.vehiculo}</p>
-          <button type="submit"
+          <button style={{marginTop:"20px", padding:"10px 20px", borderRadius:"20px", background:"#00bfa5", color:"white", border:"none", cursor:"pointer"}}
             onClick={()=>navigate("/Vehiculos")}>
             Exportar Excel
           </button>
