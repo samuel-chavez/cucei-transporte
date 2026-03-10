@@ -44,12 +44,22 @@ body{
   font-size:20px;
   margin:10px 0;
 }
-.button{
-  marginTop:"20px";
-  padding:"10px 20px"; 
-  borderRadius:"20px";
-  background:"#00bfa5"; 
-  color:"white";
-  border:"none"; 
-  cursor:"pointer";
+
+/* Botón moderno para exportar Excel */
+button.export-excel {
+  padding: 12px 25px;          /* Tamaño del botón */
+  border: none;                 /* Sin borde */
+  border-radius: 25px;          /* Bordes redondeados */
+  background: #00bfa5;          /* Verde cyan */
+  color: white;                 /* Texto blanco */
+  font-size: 16px;              /* Tamaño del texto */
+  cursor: pointer;              /* Manito al pasar el mouse */
+  transition: 0.3s;             /* Animación suave */
+  margin-top: 20px;             /* Separación de otros elementos */
+}
+
+/* Hover del botón */
+button.export-excel:hover {
+  background: #009e8f;          /* Verde cyan más oscuro */
+  transform: translateY(-2px);  /* Leve elevación al pasar mouse */
 }

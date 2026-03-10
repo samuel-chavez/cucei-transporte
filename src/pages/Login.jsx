@@ -53,7 +53,7 @@ function Login() {
             Iniciar sesión
           </button>
           <br/><br/>
-          <button2 type="button" onClick={()=>navigate("/registro")}>
+          <button2 type="button2" onClick={()=>navigate("/registro")}>
             Crear cuenta
           </button2>
         </form>
