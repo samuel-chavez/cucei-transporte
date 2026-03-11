@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { usuarios } from "../data/usuarios";
+import { usuarios } from "../data/Usuarios";
+import "../styless/Login.css";
 
 function Login() {
 
@@ -22,45 +23,47 @@ function Login() {
       alert("Código o contraseña incorrectos");
     }
   };
-
   return (
-    <div style={{textAlign:"center", marginTop:"100px"}}>
+    <div>
+      <div className="navbar"> 
+        Bienvenido a
+      </div>
+      <div className="login-container">
+        <div className="login-box">
 
-      <h1>CUCEI Transporte</h1>
+          <h1>BICI-ACCESS</h1>
 
-      <form onSubmit={iniciarSesion}>
+          <form onSubmit={iniciarSesion}>
 
-        <div>
-          <input
-            type="text"
-            placeholder="Código de alumno"
-            maxLength="9"
-            value={codigo}
-            onChange={(e) => setCodigo(e.target.value)}
-          />
-        </div>
+            <input
+              type="text"
+              placeholder="Código de alumno"
+              maxLength="9"
+              value={codigo}
+              onChange={(e) => setCodigo(e.target.value)}
+            />
 
-        <br/>
+              <input
+                type="password"
+                placeholder="Contraseña"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+          <button type="submit">
+            Iniciar sesión
+          </button>
+          <br/><br/>
+          <button2 type="button2" onClick={()=>navigate("/registro")}>
+            Crear cuenta
+          </button2>
+        </form>
 
-        <div>
-          <input
-            type="password"
-            placeholder="Contraseña"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
-
-        <br/>
-
-        <button type="submit">
-          Iniciar sesión
-        </button>
-
-      </form>
+      </div>
 
     </div>
-  );
+  </div>
+
+);
 }
 
 export default Login;

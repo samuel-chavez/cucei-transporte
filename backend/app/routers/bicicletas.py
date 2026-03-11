@@ -1,25 +1,21 @@
-from app.logger import log_bicicleta_event
 from fastapi import APIRouter, Depends, HTTPException, Request
-from app.models import BicicletaCreate, BicicletaOut, UserOut
-from app.dependencies import get_current_user
-from app.database.database_mongo import db
 from uuid import uuid4
 
-# colección de MongoDB
-bicicletas_collection = db["bicicletas"]
+from app.logger import log_bicicleta_event
+from app.models import BicicletaCreate, BicicletaOut, UserOut
+from app.dependencies import get_current_user
+from app.database.bicis import bicis_collection
+
 router = APIRouter(prefix="/bicicletas", tags=["bicicletas"])
 
 
-# CREATE
 @router.post("/", response_model=BicicletaOut)
 async def registrar_bicicleta(
     bicicleta: BicicletaCreate,
     current_user: UserOut = Depends(get_current_user),
     request: Request = None
 ):
-    # verificar si ya existe serial
-    bici_existente = bicicletas_collection.find_one({"serial": bicicleta.serial})
-
+    bici_existente = bicis_collection.find_one({"serial": bicicleta.serial})
     if bici_existente:
         raise HTTPException(
             status_code=400,
@@ -37,7 +33,7 @@ async def registrar_bicicleta(
         "serial": bicicleta.serial
     }
 
-    bicicletas_collection.insert_one(nueva_bicicleta)
+    bicis_collection.insert_one(nueva_bicicleta)
 
     if request:
         client_ip = request.client.host if request.client else "unknown"
@@ -46,29 +42,25 @@ async def registrar_bicicleta(
     return nueva_bicicleta
 
 
-# READ (listar bicicletas del usuario)
 @router.get("/mis-bicicletas", response_model=list[BicicletaOut])
 async def listar_mis_bicicletas(
     current_user: UserOut = Depends(get_current_user)
 ):
     bicicletas = list(
-        bicicletas_collection.find(
+        bicis_collection.find(
             {"propietario_id": current_user.id},
             {"_id": 0}
         )
     )
-
     return bicicletas
 
 
-# READ (obtener una bicicleta)
 @router.get("/{bici_id}", response_model=BicicletaOut)
 async def obtener_bicicleta(
     bici_id: str,
     current_user: UserOut = Depends(get_current_user)
 ):
-
-    bici = bicicletas_collection.find_one({"id": bici_id}, {"_id": 0})
+    bici = bicis_collection.find_one({"id": bici_id}, {"_id": 0})
 
     if not bici:
         raise HTTPException(status_code=404, detail="Bicicleta no encontrada")
@@ -82,7 +74,6 @@ async def obtener_bicicleta(
     return bici
 
 
-# UPDATE
 @router.put("/{bici_id}", response_model=BicicletaOut)
 async def actualizar_bicicleta(
     bici_id: str,
@@ -90,8 +81,7 @@ async def actualizar_bicicleta(
     current_user: UserOut = Depends(get_current_user),
     request: Request = None
 ):
-
-    bici = bicicletas_collection.find_one({"id": bici_id})
+    bici = bicis_collection.find_one({"id": bici_id})
 
     if not bici:
         raise HTTPException(status_code=404, detail="Bicicleta no encontrada")
@@ -102,7 +92,14 @@ async def actualizar_bicicleta(
             detail="No tienes permiso para modificar esta bicicleta"
         )
 
-    bicicletas_collection.update_one(
+    serial_existente = bicis_collection.find_one({"serial": bici_actualizada.serial})
+    if serial_existente and serial_existente["id"] != bici_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Ya existe otra bicicleta con este número de serie"
+        )
+
+    bicis_collection.update_one(
         {"id": bici_id},
         {"$set": {
             "marca": bici_actualizada.marca,
@@ -112,7 +109,7 @@ async def actualizar_bicicleta(
         }}
     )
 
-    bici_actualizada_db = bicicletas_collection.find_one({"id": bici_id}, {"_id": 0})
+    bici_actualizada_db = bicis_collection.find_one({"id": bici_id}, {"_id": 0})
 
     if request:
         client_ip = request.client.host if request.client else "unknown"
@@ -121,15 +118,13 @@ async def actualizar_bicicleta(
     return bici_actualizada_db
 
 
-# DELETE
 @router.delete("/{bici_id}")
 async def eliminar_bicicleta(
     bici_id: str,
     current_user: UserOut = Depends(get_current_user),
     request: Request = None
 ):
-
-    bici = bicicletas_collection.find_one({"id": bici_id})
+    bici = bicis_collection.find_one({"id": bici_id})
 
     if not bici:
         raise HTTPException(status_code=404, detail="Bicicleta no encontrada")
@@ -140,7 +135,7 @@ async def eliminar_bicicleta(
             detail="No tienes permiso para eliminar esta bicicleta"
         )
 
-    bicicletas_collection.delete_one({"id": bici_id})
+    bicis_collection.delete_one({"id": bici_id})
 
     if request:
         client_ip = request.client.host if request.client else "unknown"
