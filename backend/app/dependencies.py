@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
-from app.database import fake_users_db, SECRET_KEY, ALGORITHM
+from app.database_fake import fake_users_db, SECRET_KEY, ALGORITHM
 from app.models import UserOut
 from app.exceptions import PermissionDeniedException
 

@@ -1,3 +1,3 @@
 from .database_mongo import db
 
-bicis = db.bicis
+bicis_collection = db["bicis"]

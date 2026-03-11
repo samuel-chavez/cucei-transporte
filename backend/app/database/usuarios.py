@@ -1,3 +1,3 @@
 from .database_mongo import db
 
-usuarios = db.usuarios
+usuarios_collection = db["usuarios"]

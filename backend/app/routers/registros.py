@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from app.models import RegistroCreate, RegistroOut, UserOut
 from app.dependencies import get_current_user
-from app.database import fake_registros_db, fake_bicicletas_db
+#from app.database import fake_registros_db, fake_bicicletas_db
 from uuid import uuid4
 from datetime import datetime
 
