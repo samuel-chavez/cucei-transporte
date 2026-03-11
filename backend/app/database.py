@@ -8,6 +8,12 @@ from datetime import datetime
 from passlib.context import CryptContext
 import uuid
 
+
+# Configuración para JWT
+SECRET_KEY = "ciclopuerto_2v_secret_key_2025B"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
 # Configuración de hashing (igual que antes)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
