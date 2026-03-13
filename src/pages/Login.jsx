@@ -48,11 +48,10 @@ function Login() {
       });
 
       const data = await response.json();
-      console.log("RESPUESTA BACKEND:", data);
+      console.log("RESPUESTA BACKEND alv:", data);
 
       if (response.ok) {
         navigate("/perfil");
-
         // guardar token correctamente
         const token = localStorage.getItem("token");
       } else {
@@ -88,7 +87,6 @@ function Login() {
         )}
 
         <form onSubmit={iniciarSesion}>
-
           <input
             type="text"
             placeholder="Código"
