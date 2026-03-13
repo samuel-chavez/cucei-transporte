@@ -14,59 +14,44 @@ function Login() {
   const navigate = useNavigate();
 
   const iniciarSesion = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setError("");
 
-    e.preventDefault();
+  const email = `${codigo}@alumnos.udg.mx`;
 
-    setLoading(true);
-    setError("");
+  try {
+    const response = await fetch(`${API_URL}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
 
-    if (!codigo || !password) {
+    // 1. Extraemos los datos UNA SOLA VEZ
+    const data = await response.json();
+    console.log("DATOS DEL BACKEND:", data);
 
-      setError("Código y contraseña son obligatorios");
-      setLoading(false);
-      return;
-
-    }
-
-    const email = `${codigo}@alumnos.udg.mx`;
-
-    try {
-
-      const response = await fetch(`${API_URL}/auth/login`, {
-
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json"
-        },
-
-        body: JSON.stringify({
-          email,//si recibe correo o email si conecta token pero no pasa de login a perfil
-          password//si es por username o nombre en vez de codigo si pasa a perfil
-        })
-
-      });
-
-      const data = await response.json();
-      console.log("RESPUESTA BACKEND alv:", data);
-          if (response.ok) {
+    if (response.ok) {
+        // 2. Verificamos que el token venga en 'access_token'
+        if (data.access_token) {
+            localStorage.setItem("access_token", data.access_token);
+            console.log("TOKEN GUARDADO EN STORAGE ✅");
+            
+            // 3. Redirigimos
             navigate("/perfil");
-            const token = localStorage.getItem("token");     
-          } else {
-            setError(data.detail || "Credenciales incorrectas");
-          }
-
-    } catch (err) {
-
-      setError("Error de conexión con el servidor");
-
-    } finally {
-
-      setLoading(false);
-
+        } else {
+            setError("El servidor no envió un access_token");
+        }
+    } else {
+        setError(data.detail || "Credenciales incorrectas");
     }
-
-  };
+  } catch (err) {
+    console.error("Error capturado:", err);
+    setError("Error de conexión con el servidor");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
 

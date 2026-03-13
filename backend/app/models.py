@@ -37,7 +37,7 @@ class UserLogin(BaseModel):
         return v
 
 class UserOut(BaseModel):
-    id: Optional[int] = None
+    id: Optional[str] = None
     codigo: str
     nombre: str
     email: EmailStr

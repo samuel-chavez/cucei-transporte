@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+    import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { QRCodeCanvas } from "qrcode.react";
 import "../styless/Perfil.css";
@@ -29,66 +29,45 @@ function Perfil() {
   };
 
   useEffect(() => {
-
-    const token = localStorage.getItem("token");
+  // 1. Pequeña espera para asegurar que el storage sincronizó
+  const timer = setTimeout(() => {
+    const token = localStorage.getItem("access_token");
+    console.log("Token leído en Perfil:", token);
 
     if (!token) {
+      console.warn("No hay token todavía...");
+      // navigate("/login"); // Comenta esto un momento para que no te bote
       return;
     }
 
     const fetchPerfil = async () => {
-
       try {
-
-        // Obtener datos del usuario
         const userRes = await fetch(`${API_URL}/users/me`, {
           headers: {
-            Authorization: `Bearer ${token}`
+            "Authorization": `Bearer ${token}`
           }
         });
 
-        if (!userRes.ok) {
-
-          if (userRes.status === 401) {
-            localStorage.removeItem("token");
-            navigate("/perfil");
-          }
-
-          throw new Error("Error al obtener perfil");
+            if (userRes.ok) {
+          const userData = await userRes.json();
+          setUsuario(userData);
+        } else {
+          console.error("Error en respuesta:", userRes.status);
+          // COMENTA ESTO: No borres el token hasta estar 100% seguros
+          // if (userRes.status === 401) { localStorage.removeItem("access_token"); navigate("/login"); }
         }
-        const userData = await userRes.json();
-        console.log("Datos usuario:", userData);
-        setUsuario(userData);
-
-        // Obtener bicicletas
-        const biciRes = await fetch(`${API_URL}/bicicletas/mis-bicicletas`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-
-        if (biciRes.ok) {
-
-          const biciData = await biciRes.json();
-          setBicicletas(biciData);
-
-        }
-
       } catch (err) {
-
         setError(err.message);
-
       } finally {
-
         setLoading(false);
-
       }
-
     };
 
     fetchPerfil();
+  }, 100);
 
-  }, [navigate]);
+  return () => clearTimeout(timer);
+}, [navigate]);
 
 
   const handleExport = () => {
