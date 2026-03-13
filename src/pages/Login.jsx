@@ -37,7 +37,7 @@ function Login() {
       if (response.ok) {
         // Guardar token
         localStorage.setItem("token", data.access_token);
-        //navigate("/perfil"); // Redirige a perfil
+        navigate("/perfil"); // Redirige a perfil
         console.log("Navegando a /perfil...");
       } else {
         setError(data.detail || "Credenciales incorrectas");
