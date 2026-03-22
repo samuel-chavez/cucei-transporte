@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.dependencies import get_current_user
 from app.models import RegistroOut, UserOut
@@ -27,7 +27,7 @@ async def registrar_entrada(
         "bici_id": bici_id,
         "usuario_id": current_user.id,
         "tipo": "entrada",
-        "fecha": datetime.utcnow()
+        "fecha": datetime.now(timezone.utc)
     }
 
     registros_collection.insert_one(registro)
@@ -53,7 +53,7 @@ async def registrar_salida(
         "bici_id": bici_id,
         "usuario_id": current_user.id,
         "tipo": "salida",
-        "fecha": datetime.utcnow()
+        "fecha": datetime.now(timezone.utc)
     }
 
     registros_collection.insert_one(registro)

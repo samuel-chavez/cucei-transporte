@@ -4,9 +4,16 @@ import { useNavigate } from "react-router-dom";
 const API_URL = "http://localhost:8000";
 
 function Registro() {
+  // Campos usuario
   const [nombre, setNombre] = useState("");
   const [codigo, setCodigo] = useState("");
   const [password, setPassword] = useState("");
+  // Campos vehículo (bicicleta)
+  const [marca, setMarca] = useState("");
+  const [modelo, setModelo] = useState("");
+  const [color, setColor] = useState("");
+  const [serial, setSerial] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -24,45 +31,76 @@ function Registro() {
       return;
     }
 
-    // Generar email a partir del código
+    // Validar campos de bicicleta (opcionales, pero si se rellena alguno, todos?)
+    // Por simplicidad, permitimos que los campos de bici sean opcionales.
+    // Si se quiere obligar, descomentar la siguiente línea:
+    // if (!marca || !modelo || !color || !serial) {
+    //   setError("Datos de bicicleta incompletos");
+    //   setLoading(false);
+    //   return;
+    // }
+
     const email = `${codigo}@alumnos.udg.mx`;
 
-    // Datos exactos que espera el backend
     const usuarioData = {
-      nombre: nombre,
-      codigo: codigo,
-      email: email,
-      password: password
-      // 'rol' lo asigna el backend por defecto como "estudiante"
+      nombre,
+      codigo,
+      email,
+      password,
     };
 
     try {
-      const response = await fetch(`${API_URL}/auth/register`, {
+      // 1. Registrar usuario
+      const registerRes = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(usuarioData),
       });
+      const registerData = await registerRes.json();
 
-      const data = await response.json();
+      if (!registerRes.ok) {
+        const mensaje = registerData.detail?.[0]?.msg || registerData.detail || "Error en registro";
+        throw new Error(mensaje);
+      }
 
-      if (response.ok) {
-        alert("Registro exitoso. Ahora puedes iniciar sesión.");
-        navigate("/login");
-      } else {
-        // Mostrar el error detallado que devuelve el backend
-        console.error("Error del backend:", data);
-        if (data.detail && Array.isArray(data.detail)) {
-          // Si es un error de validación de Pydantic
-          const mensajes = data.detail.map(err => err.msg).join(", ");
-          setError(mensajes);
-        } else {
-          setError(data.detail || "Error en el registro");
+      // 2. Login automático para obtener token
+      const loginRes = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const loginData = await loginRes.json();
+
+      if (!loginRes.ok) {
+        throw new Error("No se pudo iniciar sesión automáticamente");
+      }
+      const token = loginData.access_token;
+
+      // 3. Registrar bicicleta si se proporcionaron datos
+      if (marca || modelo || color || serial) {
+        const bicicletaData = { marca, modelo, color, serial };
+        const biciRes = await fetch(`${API_URL}/bicicletas/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(bicicletaData),
+        });
+        if (!biciRes.ok) {
+          const biciError = await biciRes.json();
+          console.warn("Error registrando bicicleta:", biciError);
+          // No detenemos el flujo, solo advertimos
+          alert("Usuario registrado, pero hubo un error al guardar la bicicleta: " + (biciError.detail || "Error desconocido"));
         }
       }
+
+      // 4. Guardar token en localStorage para mantener sesión
+      localStorage.setItem("token", token);
+      alert("Registro exitoso. Serás redirigido a tu perfil.");
+      navigate("/perfil");
     } catch (err) {
-      setError("Error de conexión con el servidor");
+      setError(err.message);
       console.error(err);
     } finally {
       setLoading(false);
@@ -73,8 +111,7 @@ function Registro() {
     <div className="login-container">
       <div className="login-box">
         <h1>Registro de Alumno</h1>
-        
-        {/* Mostrar errores de forma segura */}
+
         {error && (
           <div style={{ color: 'red', marginBottom: '15px', padding: '10px', backgroundColor: '#ffeeee', borderRadius: '4px' }}>
             <strong>Error:</strong> {error}
@@ -82,6 +119,7 @@ function Registro() {
         )}
 
         <form onSubmit={handleSubmit}>
+          <h3>Datos personales</h3>
           <input
             type="text"
             placeholder="Nombre completo"
@@ -106,8 +144,40 @@ function Registro() {
             required
             disabled={loading}
           />
+
+          <hr />
+          <h3>Datos de tu bicicleta (opcional)</h3>
+          <input
+            type="text"
+            placeholder="Marca"
+            value={marca}
+            onChange={(e) => setMarca(e.target.value)}
+            disabled={loading}
+          />
+          <input
+            type="text"
+            placeholder="Modelo"
+            value={modelo}
+            onChange={(e) => setModelo(e.target.value)}
+            disabled={loading}
+          />
+          <input
+            type="text"
+            placeholder="Color"
+            value={color}
+            onChange={(e) => setColor(e.target.value)}
+            disabled={loading}
+          />
+          <input
+            type="text"
+            placeholder="Número de serie"
+            value={serial}
+            onChange={(e) => setSerial(e.target.value)}
+            disabled={loading}
+          />
+
           <button type="submit" disabled={loading}>
-            {loading ? "Registrando..." : "Registrarse"}
+            {loading ? "Procesando..." : "Registrarse"}
           </button>
         </form>
 
