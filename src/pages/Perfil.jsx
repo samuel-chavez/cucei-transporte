@@ -99,7 +99,6 @@ function Perfil() {
           <h1>Perfil del Alumno</h1>
           <p className="perfil-info"><b>Nombre:</b> {usuario.nombre}</p>
           <p className="perfil-info"><b>Código:</b> {usuario.codigo}</p>
-          <p className="perfil-info"><b>Email:</b> {usuario.email}</p>
           <p className="perfil-info"><b>Rol:</b> {usuario.rol}</p>
 
           <hr />

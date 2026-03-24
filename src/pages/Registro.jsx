@@ -20,6 +20,7 @@ function Registro() {
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
+    localStorage.removeItem("token"); // Limpia cualquier sesion anterior
     e.preventDefault();
     setLoading(true);
     setError("");
@@ -97,8 +98,8 @@ function Registro() {
 
       // 4. Guardar token en localStorage para mantener sesión
       localStorage.setItem("token", token);
-      alert("Registro exitoso. Serás redirigido a tu perfil.");
-      navigate("/perfil");
+      alert("Registro exitoso. Serás redirigido al login.");
+      navigate("/login");
     } catch (err) {
       setError(err.message);
       console.error(err);
