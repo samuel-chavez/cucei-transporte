@@ -11,6 +11,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 function Perfil() {
   const [usuario, setUsuario] = useState(null);
   const [bicicletas, setBicicletas] = useState([]);
+  const [registros, setRegistros] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -61,6 +62,16 @@ function Perfil() {
         } else if (biciRes.status !== 404) {
           console.warn("Error al obtener bicicletas:", biciRes.status);
         }
+
+        // Obtener historial de registros
+        const registrosRes = await fetch(`${API_URL}/registros/mi-historial`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (registrosRes.ok) {
+          const registrosData = await registrosRes.json();
+         setRegistros(registrosData);
+        }
+
       } catch (err) {
         setError(err.message);
       } finally {
@@ -174,6 +185,30 @@ function Perfil() {
           <button className="export-excel" onClick={handleExport}>
             Exportar mis bicicletas a Excel
           </button>
+
+          <hr />
+
+          <h2>Historial de accesos</h2>
+          {registros.length === 0 ? (
+            <p>No hay registros de entrada/salida.</p>
+          ) : (
+            <>
+              <p><b>Último ingreso:</b> {formatearFecha(registros[0]?.fecha_entrada)}</p>
+                {registros[0]?.fecha_salida && <p><b>Última salida:</b> {formatearFecha(registros[0].fecha_salida)}</p>}
+              <details>
+                <summary>Ver historial completo ({registros.length})</summary>
+                     <ul>
+                {registros.map((reg, idx) => (
+                    <li key={reg.id || idx}>
+                        Entrada: {formatearFecha(reg.fecha_entrada)}
+                        {reg.fecha_salida ? ` | Salida: ${formatearFecha(reg.fecha_salida)}` : " (Dentro del ciclopuerto)"}
+                    </li>
+                ))}
+            </ul>
+        </details>
+    </>
+)}
+
         </div>
       </div>
     </div>
