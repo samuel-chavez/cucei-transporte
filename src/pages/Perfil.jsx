@@ -87,27 +87,71 @@ function Perfil() {
   };
 
   // --- Exportar a Excel ---
-  const handleExport = () => {
-    if (bicicletas.length === 0) {
-      alert("No hay bicicletas para exportar");
-      return;
+  const handleExport = async () => {
+  if (bicicletas.length === 0 && registros.length === 0) {
+    alert("No hay datos para exportar");
+    return;
+  }
+
+  // 1. Hoja de bicicletas (existente)
+  const bicisData = bicicletas.map((bici) => ({
+    Marca: bici.marca,
+    Modelo: bici.modelo,
+    Color: bici.color,
+    Serial: bici.serial,
+    "Fecha Registro": formatearFecha(bici.fecha_registro || bici.created_at),
+  }));
+  const worksheetBicis = XLSX.utils.json_to_sheet(bicisData);
+
+  // 2. Hoja de historial de accesos (con lógica difusa)
+  const historialData = registros.map((reg) => {
+    let hora = null;
+    let categoriaDifusa = "No definida";
+    if (reg.fecha_entrada) {
+      const date = new Date(reg.fecha_entrada);
+      hora = date.getHours();
+      // Clasificación difusa por hora (rangos con solapamiento)
+      if (hora >= 4 && hora <= 8) categoriaDifusa = "Madrugada / Inicio Mañana";
+      else if (hora >= 8 && hora <= 12) categoriaDifusa = "Mañana";
+      else if (hora >= 12 && hora <= 18) categoriaDifusa = "Tarde";
+      else categoriaDifusa = "Noche";
     }
+    return {
+      "Fecha Entrada": formatearFecha(reg.fecha_entrada),
+      "Fecha Salida": reg.fecha_salida ? formatearFecha(reg.fecha_salida) : "—",
+      "Bicicleta ID": reg.bicicleta_id || "—",
+      "Hora Ingreso (rango difuso)": categoriaDifusa,
+      "Activo": reg.activo ? "Dentro" : "Fuera",
+    };
+  });
+  const worksheetHistorial = XLSX.utils.json_to_sheet(historialData);
 
-    const data = bicicletas.map((bici) => ({
-      Marca: bici.marca,
-      Modelo: bici.modelo,
-      Color: bici.color,
-      Serial: bici.serial,
-      "Fecha Registro": formatearFecha(bici.fecha_registro || bici.created_at),
-    }));
+  // 3. Hoja de resumen para gráfica (conteo por categoría difusa)
+  const conteoDifuso = {};
+  historialData.forEach((item) => {
+    const cat = item["Hora Ingreso (rango difuso)"];
+    if (cat !== "No definida") {
+      conteoDifuso[cat] = (conteoDifuso[cat] || 0) + 1;
+    }
+  });
+  const resumenData = Object.entries(conteoDifuso).map(([categoria, count]) => ({
+    "Categoría Horaria": categoria,
+    "Número de Ingresos": count,
+  }));
+  const worksheetResumen = XLSX.utils.json_to_sheet(resumenData);
 
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Bicicletas");
-    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-    const file = new Blob([excelBuffer], { type: "application/octet-stream" });
-    saveAs(file, "mis_bicicletas.xlsx");
-  };
+  // Crear libro y agregar hojas
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheetBicis, "Mis Bicicletas");
+  XLSX.utils.book_append_sheet(workbook, worksheetHistorial, "Historial Accesos");
+  XLSX.utils.book_append_sheet(workbook, worksheetResumen, "Resumen Difuso");
+
+  // Generar archivo
+  const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+  const file = new Blob([excelBuffer], { type: "application/octet-stream" });
+  saveAs(file, "datos_completos_biciaccess.xlsx");
+};
+
 
   // --- Carga inicial de datos ---
   useEffect(() => {
