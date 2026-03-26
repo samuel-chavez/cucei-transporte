@@ -4,7 +4,7 @@ import { QRCodeCanvas } from "qrcode.react";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import "../styless/Perfil.css";
-
+ 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 function Perfil() {
@@ -18,13 +18,28 @@ function Perfil() {
 
   // --- Funciones auxiliares ---
   const formatearFecha = (fecha) => {
-    if (!fecha) return "—";
-    try {
-      return new Date(fecha).toLocaleString();
-    } catch {
+  if (!fecha) return "—";
+  try {
+    // Si es un string ISO (ej. "2026-03-26T16:37:21.123Z") o sin Z, asumir UTC
+    let date;
+    if (typeof fecha === "string") {
+      // Añadir 'Z' si no tiene zona horaria explícita
+      const isoString = fecha.includes("Z") ? fecha : fecha + "Z";
+      date = new Date(isoString);
+    } else {
+      date = new Date(fecha);
+    }
+    // Verificar si es válido
+    if (isNaN(date.getTime())) {
       return fecha;
     }
-  };
+    // Mostrar en la zona horaria del navegador
+    return date.toLocaleString();
+  } catch {
+    return fecha;
+  }
+};
+
 
   const generarQR = () => {
     if (!usuario) return "";
