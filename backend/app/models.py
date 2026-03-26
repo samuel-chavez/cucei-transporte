@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr, validator, Field
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timezone
+from pydantic import field_serializer
 import re
 
 # ============ MODELOS DE USUARIO ============
@@ -70,6 +71,16 @@ class BicicletaOut(BicicletaCreate):
 
     class Config:
         from_attributes = True
+    
+    @field_serializer('fecha_registro')
+    def serialize_dt(self, dt: datetime | None, _info):
+        if dt is None:
+            return None
+        # Si el datetime es naive, asumir que es UTC y añadir 'Z'
+        if dt.tzinfo is None:
+            return dt.isoformat() + 'Z'
+        return dt.isoformat()
+
 
 # ============ MODELOS DE REGISTRO ============
 
