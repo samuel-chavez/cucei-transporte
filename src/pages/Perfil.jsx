@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { QRCodeCanvas } from "qrcode.react";
-import "../styless/Perfil.css";
-//para excel 
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-
+import "../styless/Perfil.css";
+ 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 function Perfil() {
@@ -16,6 +15,31 @@ function Perfil() {
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
+
+  // --- Funciones auxiliares ---
+  const formatearFecha = (fecha) => {
+  if (!fecha) return "—";
+  try {
+    // Si es un string ISO (ej. "2026-03-26T16:37:21.123Z") o sin Z, asumir UTC
+    let date;
+    if (typeof fecha === "string") {
+      // Añadir 'Z' si no tiene zona horaria explícita
+      const isoString = fecha.includes("Z") ? fecha : fecha + "Z";
+      date = new Date(isoString);
+    } else {
+      date = new Date(fecha);
+    }
+    // Verificar si es válido
+    if (isNaN(date.getTime())) {
+      return fecha;
+    }
+    // Mostrar en la zona horaria del navegador
+    return date.toLocaleString();
+  } catch {
+    return fecha;
+  }
+};
+
 
   const generarQR = () => {
     if (!usuario) return "";
@@ -28,6 +52,108 @@ function Perfil() {
     return JSON.stringify(datosQR);
   };
 
+  // --- Manejo de entrada/salida manual ---
+  const cambiarEstado = async (biciId, tipo) => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      alert("No hay sesión activa");
+      return;
+    }
+
+    const endpoint = tipo === "entrada" ? "entrada" : "salida";
+    try {
+      const res = await fetch(`${API_URL}/registros/${endpoint}?bici_id=${biciId}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        alert(`${tipo === "entrada" ? "Entrada" : "Salida"} registrada correctamente`);
+        // Recargar historial
+        const regRes = await fetch(`${API_URL}/registros/mi-historial`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (regRes.ok) {
+          const nuevosRegistros = await regRes.json();
+          setRegistros(nuevosRegistros);
+        }
+      } else {
+        const err = await res.json();
+        alert(`Error: ${err.detail || "No se pudo registrar"}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error de conexión");
+    }
+  };
+
+  // --- Exportar a Excel ---
+  const handleExport = async () => {
+  if (bicicletas.length === 0 && registros.length === 0) {
+    alert("No hay datos para exportar");
+    return;
+  }
+
+  // 1. Hoja de bicicletas (existente)
+  const bicisData = bicicletas.map((bici) => ({
+    Marca: bici.marca,
+    Modelo: bici.modelo,
+    Color: bici.color,
+    Serial: bici.serial,
+    "Fecha Registro": formatearFecha(bici.fecha_registro || bici.created_at),
+  }));
+  const worksheetBicis = XLSX.utils.json_to_sheet(bicisData);
+
+  // 2. Hoja de historial de accesos (con lógica difusa)
+  const historialData = registros.map((reg) => {
+    let hora = null;
+    let categoriaDifusa = "No definida";
+    if (reg.fecha_entrada) {
+      const date = new Date(reg.fecha_entrada);
+      hora = date.getHours();
+      // Clasificación difusa por hora (rangos con solapamiento)
+      if (hora >= 4 && hora <= 8) categoriaDifusa = "Madrugada / Inicio Mañana";
+      else if (hora >= 8 && hora <= 12) categoriaDifusa = "Mañana";
+      else if (hora >= 12 && hora <= 18) categoriaDifusa = "Tarde";
+      else categoriaDifusa = "Noche";
+    }
+    return {
+      "Fecha Entrada": formatearFecha(reg.fecha_entrada),
+      "Fecha Salida": reg.fecha_salida ? formatearFecha(reg.fecha_salida) : "—",
+      "Bicicleta ID": reg.bicicleta_id || "—",
+      "Hora Ingreso (rango difuso)": categoriaDifusa,
+      "Activo": reg.activo ? "Dentro" : "Fuera",
+    };
+  });
+  const worksheetHistorial = XLSX.utils.json_to_sheet(historialData);
+
+  // 3. Hoja de resumen para gráfica (conteo por categoría difusa)
+  const conteoDifuso = {};
+  historialData.forEach((item) => {
+    const cat = item["Hora Ingreso (rango difuso)"];
+    if (cat !== "No definida") {
+      conteoDifuso[cat] = (conteoDifuso[cat] || 0) + 1;
+    }
+  });
+  const resumenData = Object.entries(conteoDifuso).map(([categoria, count]) => ({
+    "Categoría Horaria": categoria,
+    "Número de Ingresos": count,
+  }));
+  const worksheetResumen = XLSX.utils.json_to_sheet(resumenData);
+
+  // Crear libro y agregar hojas
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheetBicis, "Mis Bicicletas");
+  XLSX.utils.book_append_sheet(workbook, worksheetHistorial, "Historial Accesos");
+  XLSX.utils.book_append_sheet(workbook, worksheetResumen, "Resumen Difuso");
+
+  // Generar archivo
+  const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+  const file = new Blob([excelBuffer], { type: "application/octet-stream" });
+  saveAs(file, "datos_completos_biciaccess.xlsx");
+};
+
+
+  // --- Carga inicial de datos ---
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     if (!token) {
@@ -37,7 +163,7 @@ function Perfil() {
 
     const fetchData = async () => {
       try {
-        // Obtener datos del usuario
+        // Usuario
         const userRes = await fetch(`${API_URL}/users/me`, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -52,7 +178,7 @@ function Perfil() {
         const userData = await userRes.json();
         setUsuario(userData);
 
-        // Obtener bicicletas del usuario
+        // Bicicletas
         const biciRes = await fetch(`${API_URL}/bicicletas/mis-bicicletas`, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -63,15 +189,14 @@ function Perfil() {
           console.warn("Error al obtener bicicletas:", biciRes.status);
         }
 
-        // Obtener historial de registros
-        const registrosRes = await fetch(`${API_URL}/registros/mi-historial`, {
+        // Historial
+        const regRes = await fetch(`${API_URL}/registros/mi-historial`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        if (registrosRes.ok) {
-          const registrosData = await registrosRes.json();
-         setRegistros(registrosData);
+        if (regRes.ok) {
+          const regData = await regRes.json();
+          setRegistros(regData);
         }
-
       } catch (err) {
         setError(err.message);
       } finally {
@@ -82,54 +207,7 @@ function Perfil() {
     fetchData();
   }, [navigate]);
 
-  const handleExport = () => {
-    if (bicicletas.length === 0) {
-      alert("No hay bicicletas para exportar");
-      return;
-    }
-
-    // Formatear datos
-    const data = bicicletas.map((bici) => ({
-      Marca: bici.marca,
-      Modelo: bici.modelo,
-      Color: bici.color,
-      Serial: bici.serial,
-      "Fecha Registro": formatearFecha(
-        bici.fecha_registro || bici.created_at
-      ),
-    }));
-
-    // Crear hoja
-    const worksheet = XLSX.utils.json_to_sheet(data);
-
-    // Crear libro
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Bicicletas");
-
-    // Generar archivo
-    const excelBuffer = XLSX.write(workbook, {
-      bookType: "xlsx",
-      type: "array",
-    });
-
-    const file = new Blob([excelBuffer], {
-      type: "application/octet-stream",
-    });
-
-    saveAs(file, "mis_bicicletas.xlsx");
-  };
-
-  // Formatear fecha para mostrar (ej. "15/03/2026 14:30")
-  const formatearFecha = (fecha) => {
-    if (!fecha) return "—";
-    try {
-      const date = new Date(fecha);
-      return date.toLocaleString();
-    } catch {
-      return fecha; // si es string y no se puede parsear
-    }
-  };
-
+  // --- Estados de carga y error ---
   if (loading) return <div>Cargando perfil...</div>;
   if (error) return <div>Error: {error}</div>;
   if (!usuario) return <div>No se pudo cargar el perfil</div>;
@@ -166,18 +244,35 @@ function Perfil() {
                   <th>Color</th>
                   <th>Serial</th>
                   <th>Fecha Registro</th>
+                  <th>Acción</th>
                 </tr>
               </thead>
               <tbody>
-                {bicicletas.map((bici) => (
-                  <tr key={bici.id || bici._id}>
-                    <td>{bici.marca}</td>
-                    <td>{bici.modelo}</td>
-                    <td>{bici.color}</td>
-                    <td>{bici.serial}</td>
-                    <td>{formatearFecha(bici.fecha_registro || bici.created_at)}</td>
-                  </tr>
-                ))}
+                {bicicletas.map((bici) => {
+                  const activo = registros.some(
+                    reg => reg.bicicleta_id === (bici.id || bici._id) && reg.activo === true
+                  );
+                  return (
+                    <tr key={bici.id || bici._id}>
+                      <td>{bici.marca}</td>
+                      <td>{bici.modelo}</td>
+                      <td>{bici.color}</td>
+                      <td>{bici.serial}</td>
+                      <td>{formatearFecha(bici.fecha_registro || bici.created_at)}</td>
+                      <td>
+                        {activo ? (
+                          <button onClick={() => cambiarEstado(bici.id || bici._id, "salida")}>
+                            Registrar salida
+                          </button>
+                        ) : (
+                          <button onClick={() => cambiarEstado(bici.id || bici._id, "entrada")}>
+                            Registrar entrada
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
@@ -194,21 +289,22 @@ function Perfil() {
           ) : (
             <>
               <p><b>Último ingreso:</b> {formatearFecha(registros[0]?.fecha_entrada)}</p>
-                {registros[0]?.fecha_salida && <p><b>Última salida:</b> {formatearFecha(registros[0].fecha_salida)}</p>}
+              {registros[0]?.fecha_salida && (
+                <p><b>Última salida:</b> {formatearFecha(registros[0].fecha_salida)}</p>
+              )}
               <details>
                 <summary>Ver historial completo ({registros.length})</summary>
-                     <ul>
-                {registros.map((reg, idx) => (
+                <ul>
+                  {registros.map((reg, idx) => (
                     <li key={reg.id || idx}>
-                        Entrada: {formatearFecha(reg.fecha_entrada)}
-                        {reg.fecha_salida ? ` | Salida: ${formatearFecha(reg.fecha_salida)}` : " (Dentro del ciclopuerto)"}
+                      Entrada: {formatearFecha(reg.fecha_entrada)}
+                      {reg.fecha_salida ? ` | Salida: ${formatearFecha(reg.fecha_salida)}` : " (Dentro del ciclopuerto)"}
                     </li>
-                ))}
-            </ul>
-        </details>
-    </>
-)}
-
+                  ))}
+                </ul>
+              </details>
+            </>
+          )}
         </div>
       </div>
     </div>
