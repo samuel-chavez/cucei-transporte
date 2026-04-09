@@ -230,6 +230,13 @@ function Perfil() {
             <p>Escanea este código para registrar entrada o salida</p>
           </div>
 
+          {usuario.rol === "cuidador" && (
+             <div style={{ textAlign: "center", marginTop: "20px" }}>
+                <button onClick={() => navigate("/scan")}>
+                  📷 Escanear QR (vigilante)
+                </button>
+              </div>
+          )}
           <hr />
 
           <h2>Mis Bicicletas</h2>
