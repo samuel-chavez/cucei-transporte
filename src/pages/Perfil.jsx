@@ -4,7 +4,7 @@ import { QRCodeCanvas } from "qrcode.react";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import "../styless/Perfil.css";
- 
+
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 function Perfil() {
@@ -251,7 +251,6 @@ function Perfil() {
                   <th>Color</th>
                   <th>Serial</th>
                   <th>Fecha Registro</th>
-                  <th>Acción</th>
                 </tr>
               </thead>
               <tbody>
