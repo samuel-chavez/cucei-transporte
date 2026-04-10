@@ -6,6 +6,7 @@ from slowapi.errors import RateLimitExceeded
 from app.routers import auth, users, bicicletas, registros, admin 
 from fastapi.middleware.cors import CORSMiddleware
 import time
+from app.routers import acceso
 limiter = Limiter(key_func=get_remote_address, default_limits=["5/minute"])
 
 app = FastAPI(
@@ -34,6 +35,7 @@ app.include_router(users.router)
 app.include_router(bicicletas.router)
 app.include_router(registros.router)
 app.include_router(admin.router)
+app.include_router(acceso.router)
 
 @app.get("/")
 @limiter.limit("10/minute")
