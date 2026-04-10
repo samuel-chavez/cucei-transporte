@@ -265,17 +265,6 @@ function Perfil() {
                       <td>{bici.color}</td>
                       <td>{bici.serial}</td>
                       <td>{formatearFecha(bici.fecha_registro || bici.created_at)}</td>
-                      <td>
-                        {activo ? (
-                          <button onClick={() => cambiarEstado(bici.id || bici._id, "salida")}>
-                            Registrar salida
-                          </button>
-                        ) : (
-                          <button onClick={() => cambiarEstado(bici.id || bici._id, "entrada")}>
-                            Registrar entrada
-                          </button>
-                        )}
-                      </td>
                     </tr>
                   );
                 })}
