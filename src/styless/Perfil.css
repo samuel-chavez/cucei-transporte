@@ -1,65 +1,187 @@
-body{
-  margin:0;
-  font-family: Arial, Helvetica, sans-serif;
-  background:#f4f6f8;
+/* Reset básico */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f0f2f5;
 }
 
 /* Barra superior */
-.navbar{
-  background:#00bfa5;
-  color:white;
-  padding:20px;
-  font-size:22px;
-  font-weight:bold;
-  text-align:center;
+.navbar {
+  background: #00bfa5;
+  color: white;
+  padding: 1.2rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-
-/* Contenedor centrado */
-.perfil-container{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:80vh;
+/* Contenedor principal (sin altura fija para que fluya) */
+.perfil-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 2rem;
+  min-height: calc(100vh - 80px); /* Evita que se corte abajo */
 }
 
-/* Tarjeta del perfil */
-.perfil-card{
-  background:white;
-  padding:40px;
-  border-radius:20px;
-  width:400px;
-  text-align:center;
-
-  box-shadow:0px 10px 25px rgba(0,0,0,0.2);
+/* Tarjeta del perfil: ancho variable, centrada */
+.perfil-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 1400px;   /* Suficiente para tablas anchas */
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  transition: all 0.2s;
 }
 
-/* Título */
-.perfil-card h1{
-  margin-bottom:25px;
+/* Títulos */
+.perfil-card h1 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: #1e2a3a;
+  font-size: 1.8rem;
 }
 
-/* Datos del usuario */
-.perfil-info{
-  font-size:20px;
-  margin:10px 0;
+.perfil-card h2 {
+  margin: 1.5rem 0 1rem;
+  color: #2c3e50;
+  border-left: 5px solid #00bfa5;
+  padding-left: 1rem;
 }
 
-/* Botón moderno para exportar Excel */
+/* Información del usuario */
+.perfil-info {
+  font-size: 1.2rem;
+  margin: 0.8rem 0;
+  line-height: 1.4;
+  border-bottom: 1px solid #e9ecef;
+  padding-bottom: 0.5rem;
+}
+
+/* Tabla de bicicletas: scroll horizontal en pantallas pequeñas */
+.bicicletas-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+  min-width: 600px; /* Para que no se rompa en móvil, pero con scroll */
+}
+
+/* Contenedor con scroll solo si es necesario */
+.table-wrapper {
+  overflow-x: auto;
+  margin: 0 -0.5rem;
+  padding: 0 0.5rem;
+}
+
+.bicicletas-tabla th,
+.bicicletas-tabla td {
+  border: 1px solid #dee2e6;
+  padding: 12px 8px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.bicicletas-tabla th {
+  background-color: #e9f5f3;
+  font-weight: 600;
+  color: #00695c;
+}
+
+.bicicletas-tabla tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+/* Botón de exportar */
 button.export-excel {
-  padding: 12px 25px;          /* Tamaño del botón */
-  border: none;                 /* Sin borde */
-  border-radius: 25px;          /* Bordes redondeados */
-  background: #00bfa5;          /* Verde cyan */
-  color: white;                 /* Texto blanco */
-  font-size: 16px;              /* Tamaño del texto */
-  cursor: pointer;              /* Manito al pasar el mouse */
-  transition: 0.3s;             /* Animación suave */
-  margin-top: 20px;             /* Separación de otros elementos */
+  background: #00bfa5;
+  color: white;
+  border: none;
+  border-radius: 40px;
+  padding: 12px 28px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin: 20px 0 10px;
+  display: inline-block;
 }
 
-/* Hover del botón */
 button.export-excel:hover {
-  background: #009e8f;          /* Verde cyan más oscuro */
-  transform: translateY(-2px);  /* Leve elevación al pasar mouse */
+  background: #009e8f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,191,165,0.3);
+}
+
+/* Botón de vigilante (estilo similar) */
+.perfil-card button:not(.export-excel) {
+  background: #2c3e50;
+  color: white;
+  border: none;
+  border-radius: 40px;
+  padding: 10px 24px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: 0.2s;
+  margin-top: 10px;
+}
+
+.perfil-card button:not(.export-excel):hover {
+  background: #1a2632;
+  transform: translateY(-2px);
+}
+
+/* Historial: lista más legible */
+details {
+  margin-top: 1rem;
+  background: #f8f9fa;
+  padding: 0.8rem;
+  border-radius: 12px;
+}
+
+summary {
+  font-weight: bold;
+  cursor: pointer;
+  color: #00796b;
+  padding: 0.5rem;
+}
+
+details ul {
+  margin: 0.8rem 0 0.5rem 1.5rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+details li {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  border-bottom: 1px solid #e2e6ea;
+  padding-bottom: 4px;
+}
+
+/* Ajustes para móviles */
+@media (max-width: 768px) {
+  .perfil-container {
+    padding: 1rem;
+  }
+  .perfil-card {
+    padding: 1.2rem;
+  }
+  .perfil-info {
+    font-size: 1rem;
+  }
+  .bicicletas-tabla th,
+  .bicicletas-tabla td {
+    padding: 8px 4px;
+    font-size: 0.8rem;
+  }
+  .perfil-card h1 {
+    font-size: 1.5rem;
+  }
 }

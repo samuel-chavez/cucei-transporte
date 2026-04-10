@@ -243,6 +243,7 @@ function Perfil() {
           {bicicletas.length === 0 ? (
             <p>No tienes bicicletas registradas.</p>
           ) : (
+          <div className="table-wrapper">
             <table className="bicicletas-tabla">
               <thead>
                 <tr>
@@ -253,7 +254,7 @@ function Perfil() {
                   <th>Fecha Registro</th>
                 </tr>
               </thead>
-              <tbody>
+            <tbody>
                 {bicicletas.map((bici) => {
                   const activo = registros.some(
                     reg => reg.bicicleta_id === (bici.id || bici._id) && reg.activo === true
@@ -270,6 +271,7 @@ function Perfil() {
                 })}
               </tbody>
             </table>
+          </div>
           )}
 
           <button className="export-excel" onClick={handleExport}>
