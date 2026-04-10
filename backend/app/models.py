@@ -89,15 +89,16 @@ class RegistroCreate(BaseModel):
 
 class RegistroOut(BaseModel):
     id: str
-    bicicleta_id: str
-    usuario_id: Optional[str]
+    bicicleta_id: Optional[str] = None   # Ahora opcional
+    usuario_id: Optional[str] = None
     usuario_nombre: str
-    bicicleta_marca: str
-    bicicleta_modelo: str
+    bicicleta_marca: Optional[str] = None
+    bicicleta_modelo: Optional[str] = None
     fecha_registro: Optional[datetime] = None
     fecha_entrada: datetime
     fecha_salida: Optional[datetime] = None
     activo: bool
+
 
     class Config:
         from_attributes = True
