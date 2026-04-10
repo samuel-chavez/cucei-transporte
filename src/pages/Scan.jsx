@@ -1,28 +1,17 @@
-import { useState, useEffect, useRef } from "react";
-import { Html5QrcodeScanner } from "html5-qrcode";
+import { useState } from "react";
+import { QrReader } from "react-qr-scan"; // ← Cambio en la importación
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";;
 
 const Scan = () => {
   const [scanned, setScanned] = useState(false);
-  const scannerRef = useRef(null);
 
-  useEffect(() => {
-    // Inicializar el scanner solo una vez
-    if (!scannerRef.current) {
-      scannerRef.current = new Html5QrcodeScanner(
-        "qr-reader-container",
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        false
-      );
-    }
-
-    const onScanSuccess = async (decodedText) => {
-      if (scanned) return; // Evita múltiples escaneos
+  const handleScan = async (result) => {
+    if (result && !scanned) {
       setScanned(true);
 
       try {
-        const data = JSON.parse(decodedText);
+        const data = JSON.parse(result?.text);
         const token = localStorage.getItem("access_token");
 
         if (!token) {
@@ -41,33 +30,22 @@ const Scan = () => {
         });
 
         if (!res.ok) throw new Error("Error en el servidor");
-
         alert("Registro exitoso");
       } catch (err) {
         console.error(err);
         alert("Error al escanear");
         setScanned(false);
       }
-    };
-
-    const onScanError = (error) => {
-      console.warn(error);
-    };
-
-    scannerRef.current.render(onScanSuccess, onScanError);
-
-    // Cleanup al desmontar
-    return () => {
-      if (scannerRef.current) {
-        scannerRef.current.clear();
-      }
-    };
-  }, [scanned]); // Dependencia para resetear si se permite reescanear
+    }
+  };
 
   return (
     <div>
       <h2>Escanear QR</h2>
-      <div id="qr-reader-container" style={{ width: "100%", maxWidth: "500px" }}></div>
+      <QrReader
+        constraints={{ facingMode: "environment" }} // ← Sigue funcionando
+        onResult={(result) => handleScan(result)}   // ← Sigue funcionando
+      />
     </div>
   );
 };
